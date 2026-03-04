@@ -11,7 +11,7 @@ This project uses Docker Compose to run [n8n](https://n8n.io/) with a PostgreSQL
 1. **Clone the repository**
 
    ```sh
-   git clone <your-repo-url>
+   git clone https://github.com/ooijingkai10/n8n-workflow.git
    cd scripts
    ```
 

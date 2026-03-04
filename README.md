@@ -1,4 +1,3 @@
-
 # Project Setup Guide
 
 This project uses Docker Compose to run [n8n](https://n8n.io/) with a PostgreSQL database.
@@ -45,16 +44,25 @@ This project uses Docker Compose to run [n8n](https://n8n.io/) with a PostgreSQL
      - **Host**: `postgres` (if running inside Docker)
      - **Port**: `5432`
    - Add a new **Telegram Bot** credential with your **Bot Token**.
+   - For the **IMAP** node:
+     - **IMAP Server**: e.g., `imap.gmail.com`
+     - **Email**: your Gmail address
+     - **Password**: your Gmail App Password (not your main password; generate an App Password in your Google Account settings)
 
-6. **Activate the Workflow**
+6. **Set Up Gmail Mailboxes (for IMAP node)**
+
+   - In Gmail, create filter rules to automatically label emails you want to process.
+   - The IMAP node can then target these labeled mailboxes.
+
+7. **Activate the Workflow**
 
    - Open the imported workflow.
    - Click **Activate** to start automation.
 
 ## Notes
 
-- If you need to stop the services, run:
+- To stop the services, run:
   ```sh
   docker compose down
   ```
-- Make sure to keep your Telegram Bot Token secure.
+- Keep your credentials (especially Telegram Bot Token and Gmail App Password) secure.

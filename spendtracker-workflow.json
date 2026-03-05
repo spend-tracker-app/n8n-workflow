@@ -5,18 +5,24 @@
       "parameters": {
         "mailbox": "spendings",
         "options": {
-          "customEmailConfig": "=[\"UNSEEN\"]\n\n",
+          "customEmailConfig": "=[\"UNSEEN\"]",
           "forceReconnect": 30
         }
       },
       "type": "n8n-nodes-base.emailReadImap",
       "typeVersion": 2.1,
       "position": [
-        -1280,
+        -1392,
         176
       ],
-      "id": "7cf781ac-eb82-43d0-8ccb-a3bf652315a6",
-      "name": "Email Trigger (IMAP)"
+      "id": "0aba0127-5258-4dbc-bb2d-6775ff139005",
+      "name": "Email Trigger (IMAP)",
+      "credentials": {
+        "imap": {
+          "id": "UMTZBi502YazkVqr",
+          "name": "IMAP account"
+        }
+      }
     },
     {
       "parameters": {
@@ -32,7 +38,7 @@
         912,
         64
       ],
-      "id": "f388daf2-c223-4120-8124-e3374e656e2b",
+      "id": "336f6743-f1dc-4291-93f8-487f71948d98",
       "name": "Send a text message",
       "webhookId": "1ae86153-0057-4c83-9e48-54be031f2608",
       "credentials": {
@@ -54,7 +60,7 @@
         0,
         0
       ],
-      "id": "c2cbb5ae-25c0-402e-95ad-b05480660f22",
+      "id": "95b6483d-4727-4254-9298-0f955a20b3fa",
       "name": "CreateAccountIfNotExists",
       "executeOnce": false,
       "alwaysOutputData": true,
@@ -74,10 +80,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -16,
-        224
+        32,
+        240
       ],
-      "id": "d42aee64-7a4c-4a87-a4ff-6bd351f4c377",
+      "id": "4979043e-4b7d-417b-b53c-b0da12d4cfdb",
       "name": "GetMCCFromCache",
       "executeOnce": false,
       "alwaysOutputData": true,
@@ -116,15 +122,15 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        192,
-        160
+        256,
+        240
       ],
-      "id": "767279cc-0380-418e-a903-d195cae2ec4c",
+      "id": "1fcb2e71-74e1-43f3-bbc5-3f313b0fe15e",
       "name": "IfCached"
     },
     {
       "parameters": {
-        "url": "=https://www.check-mcc.sg/api/store/search?q={{ $('Merge').item.json.merchant }}",
+        "url": "=https://www.check-mcc.sg/api/store/search?q={{ $('Loop Over Items').item.json.merchant }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -133,7 +139,7 @@
         416,
         352
       ],
-      "id": "2169a3e5-556d-496d-97fe-152cb3359c3d",
+      "id": "3d58c778-b0db-4022-9864-d1a6e474d4ed",
       "name": "GetMCCFromAPI",
       "alwaysOutputData": true
     },
@@ -259,7 +265,7 @@
         928,
         512
       ],
-      "id": "01b159b7-473d-49ea-9693-d78ee8882d0a",
+      "id": "65ecaa7d-5209-46b2-b3bd-4ff283a4d3a3",
       "name": "CacheMCC",
       "credentials": {
         "postgres": {
@@ -287,37 +293,37 @@
             {
               "id": "1e33b481-62c8-4499-88a1-9793469ca585",
               "name": "bank",
-              "value": "={{ $('Merge').item.json.bank }}",
+              "value": "={{ $('Loop Over Items').item.json.bank }}",
               "type": "string"
             },
             {
               "id": "bfc23c9d-825d-49e8-9ad9-e49baed05885",
               "name": "merchant",
-              "value": "={{ $('Merge').item.json.merchant }}",
+              "value": "={{ $('Loop Over Items').item.json.merchant }}",
               "type": "string"
             },
             {
               "id": "fa1cbc65-7062-4b70-ad7d-051236e4971e",
               "name": "currency",
-              "value": "={{ $('Merge').item.json.currency }}",
+              "value": "={{ $('Loop Over Items').item.json.currency }}",
               "type": "string"
             },
             {
               "id": "3ad69004-d52a-465b-9758-e361e58e4b7b",
               "name": "amount",
-              "value": "={{ $('Merge').item.json.amount }}",
+              "value": "={{ $('Loop Over Items').item.json.amount }}",
               "type": "number"
             },
             {
               "id": "d229b49d-bfde-4849-b76e-f2087e374292",
               "name": "identifier",
-              "value": "={{ $('Merge').item.json.identifier }}",
+              "value": "={{ $('Loop Over Items').item.json.identifier }}",
               "type": "string"
             },
             {
               "id": "d5bfae9c-59a4-42f9-b955-b28a905d34e2",
               "name": "time",
-              "value": "={{ $('Merge').item.json.time.toDateTime().setZone('Singapore').format('yyyy-MM-dd hh:mm:ss') }}",
+              "value": "={{ $('Loop Over Items').item.json.time.toDateTime().setZone('Singapore').format('yyyy-MM-dd hh:mm:ss') }}",
               "type": "string"
             }
           ]
@@ -330,7 +336,7 @@
         656,
         144
       ],
-      "id": "fe4ba22f-ff67-4ab9-af4d-d6daf1ef923b",
+      "id": "dce94c3b-710e-462f-a18c-fce556e7064b",
       "name": "CreateTransactionEntry"
     },
     {
@@ -344,7 +350,7 @@
         912,
         288
       ],
-      "id": "9d158312-9315-4935-a0a0-74420d6aa090",
+      "id": "ede49c2f-2a60-4b9a-a038-b25502a6b9d0",
       "name": "GetConversionRates"
     },
     {
@@ -357,7 +363,7 @@
         1152,
         288
       ],
-      "id": "3d4f0c14-4867-48d1-bfaa-9032a75e3e0b",
+      "id": "271c488e-a12c-4c8e-8c77-61dea162fbf4",
       "name": "ConvertCurrencyIfNeeded"
     },
     {
@@ -372,7 +378,7 @@
         1408,
         288
       ],
-      "id": "5174f39d-89c8-4a1f-b917-aeb1010a354e",
+      "id": "e33bc107-20b6-469f-acb4-6166f7e31512",
       "name": "GetAccount",
       "executeOnce": false,
       "alwaysOutputData": true,
@@ -395,7 +401,7 @@
         1648,
         288
       ],
-      "id": "59758780-37d5-4d6c-a70b-a6e836810d1f",
+      "id": "0d505807-b2a3-41a8-a7bb-1e07ad5edd43",
       "name": "CreateTransaction",
       "credentials": {
         "postgres": {
@@ -406,23 +412,7 @@
     },
     {
       "parameters": {
-        "options": {
-          "reset": false
-        }
-      },
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        -256,
-        208
-      ],
-      "id": "80d78a32-0cbc-4ea4-99bb-36142b37bae2",
-      "name": "Loop Over Items"
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n\nvar html = $input.item.json.textHtml\n\nif ($input.item.json.textHtml.includes(\"maribank\")) {\n  return extractMaribank(html)\n}\n\n\nfunction extractMaribank(html) {\n  // Optional: strip excessive whitespace to make regex easier\n  const cleaned = html.replace(/\\s+/g, \" \");\n  \n  // 1️⃣ Extract Merchant\n  const merchantMatch = cleaned.match(\n    /payment to\\s+(.+?)\\s+on your credit card ending/i\n  );\n  const merchant = merchantMatch ? merchantMatch[1].trim() : null;\n  \n  // 2️⃣ Extract Card Ending\n  const cardMatch = cleaned.match(/credit card ending\\s+(\\d{4})/i);\n  const cardEnding = cardMatch ? cardMatch[1] : null;\n  \n  // 3️⃣ Extract Amount\n  const amountMatch = cleaned.match(/([A-Z]{3})\\s*([\\d,]+\\.\\d{2})/);\n  \n  let currency = null;\n  let amount = null;\n  \n  if (amountMatch) {\n    currency = amountMatch[1];\n    amount = parseFloat(amountMatch[2].replace(/,/g, \"\"));\n  }\n\n  const dateMatch = cleaned.match(\n  /(\\d{1,2}\\s\\w+\\s\\d{4}\\s\\d{2}:\\d{2})\\s*SGT/i\n);\n\n  let transactionRaw = null;\n  let transactionISO = null;\n  \n  if (dateMatch) {\n    transactionRaw = dateMatch[1];\n  \n    // Convert to ISO format for DB\n    const parsedDate = new Date(transactionRaw + \" GMT+0800\");\n    transactionISO = parsedDate.toISOString();\n  }\n\n\n  return {\n    bank: \"maribank\",\n    merchant,\n    currency,\n    amount,\n    time: transactionISO,\n    identifier: cardEnding,\n    normalize_merchant: normalizeMerchant(merchant)\n  }\n}\n\nfunction normalizeMerchant(name) {\n  return name\n    .toUpperCase()\n    .replace(/[^A-Z0-9]/g, \"\")\n    .trim();\n}\n"
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nlet result = []\nfor (const item of $input.all()) {\n  var html = item.json.textHtml\n\n  if (item.json.textHtml.includes(\"maribank\")) {\n    extractMaribank(html)\n  }\n\n}\n\n\nfunction extractMaribank(html) {\n  // Optional: strip excessive whitespace to make regex easier\n  const cleaned = html.replace(/\\s+/g, \" \");\n  \n  // 1️⃣ Extract Merchant\n  const merchantMatch = cleaned.match(\n    /payment to\\s+(.+?)\\s+on your credit card ending/i\n  );\n  const merchant = merchantMatch ? merchantMatch[1].trim() : null;\n  \n  // 2️⃣ Extract Card Ending\n  const cardMatch = cleaned.match(/credit card ending\\s+(\\d{4})/i);\n  const cardEnding = cardMatch ? cardMatch[1] : null;\n  \n  // 3️⃣ Extract Amount\n  const amountMatch = cleaned.match(/([A-Z]{3})\\s*([\\d,]+\\.\\d{2})/);\n  \n  let currency = null;\n  let amount = null;\n  \n  if (amountMatch) {\n    currency = amountMatch[1];\n    amount = parseFloat(amountMatch[2].replace(/,/g, \"\"));\n  }\n\n  const dateMatch = cleaned.match(\n  /(\\d{1,2}\\s\\w+\\s\\d{4}\\s\\d{2}:\\d{2})\\s*SGT/i\n);\n\n  let transactionRaw = null;\n  let transactionISO = null;\n  \n  if (dateMatch) {\n    transactionRaw = dateMatch[1];\n  \n    // Convert to ISO format for DB\n    const parsedDate = new Date(transactionRaw + \" GMT+0800\");\n    transactionISO = parsedDate.toISOString();\n  }\n\n\n  result.push( {\n    bank: \"MariBank\",\n    merchant,\n    currency,\n    amount,\n    time: transactionISO,\n    identifier: cardEnding,\n    normalize_merchant: normalizeMerchant(merchant)\n  })\n}\n\nfunction normalizeMerchant(name) {\n  return name\n    .toUpperCase()\n    .replace(/[^A-Z0-9]/g, \"\")\n    .trim();\n}\n\nreturn result\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -430,41 +420,8 @@
         -848,
         176
       ],
-      "id": "8f8c9365-6377-4229-add1-0ea0d9aead3a",
+      "id": "3b395b94-5c81-4c23-a541-603d3a0902f4",
       "name": "MaribankParser"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "1aa7c1b4-c235-4e5c-bef2-0582cbd35139",
-              "leftValue": "={{ $json.textHtml }}",
-              "rightValue": "PayLah!",
-              "operator": {
-                "type": "string",
-                "operation": "contains"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -1024,
-        480
-      ],
-      "id": "9e052307-a517-4495-9fd8-f5942ac6b750",
-      "name": "If"
     },
     {
       "parameters": {
@@ -496,10 +453,10 @@
       "type": "n8n-nodes-base.html",
       "typeVersion": 1.2,
       "position": [
-        -816,
-        464
+        -880,
+        432
       ],
-      "id": "698b62a4-3093-4736-b180-0d88c1828df3",
+      "id": "36cefeab-5873-44ab-9154-232e5b8c9993",
       "name": "paylah_html_parser"
     },
     {
@@ -507,24 +464,23 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -464,
-        192
+        -352,
+        208
       ],
-      "id": "713a5329-36a6-4d08-adb3-b2bba72d6357",
+      "id": "cd2890a6-7bab-49a1-a34b-0aafc538ea0c",
       "name": "Merge"
     },
     {
       "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nlet merchant = $input.item.json.merchant\nconst amountMatch = $input.item.json.amount.match(/([A-Z]{3})*([\\d,]+\\.\\d{2})/);\nlet currency = null\nlet amount = null\n if (amountMatch) {\n    currency = amountMatch[1];\n    amount = parseFloat(amountMatch[2].replace(/,/g, \"\"));\n  }\n// Get current year\nconst year = new Date().getFullYear();\n\n// Remove the timezone abbreviation, append year, and add SGT offset (+08:00)\nconst cleanStr = $input.item.json.time.replace(/\\(SGT\\)/, '').trim() + ` ${year} +08:00`;\n\n// Convert to Date and ISO string\nconst transactionISO = new Date(cleanStr).toISOString();\n\n\n\n  return {\n    bank: \"dbs\",\n    merchant,\n    currency,\n    amount,\n    time: transactionISO,\n    identifier: $input.item.json.identifier,\n    normalize_merchant: normalizeMerchant(merchant)\n  }\n\nfunction normalizeMerchant(name) {\n  return name\n    .toUpperCase()\n    .replace(/[^A-Z0-9]/g, \"\")\n    .trim();\n}"
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n\nlet result = []\nfor (const item of $input.all()) {\n\n    ExtractDBS(item)\n\n}\n\nfunction ExtractDBS(item) {\n    \n  let merchant = item.json.merchant\n  const amountMatch = item.json.amount.match(/([A-Z]{3})*([\\d,]+\\.\\d{2})/);\n  let currency = null\n  let amount = null\n   if (amountMatch) {\n      currency = amountMatch[1];\n      amount = parseFloat(amountMatch[2].replace(/,/g, \"\"));\n    }\n  // Get current year\n  const year = new Date().getFullYear();\n  \n  // Remove the timezone abbreviation, append year, and add SGT offset (+08:00)\n  const cleanStr = $input.item.json.time.replace(/\\(SGT\\)/, '').trim() + ` ${year} +08:00`;\n  \n  // Convert to Date and ISO string\n  const transactionISO = new Date(cleanStr).toISOString();\n  \n\n\n  result.push( {\n    bank: \"DBS\",\n    merchant,\n    currency,\n    amount,\n    time: transactionISO,\n    identifier: $input.item.json.identifier,\n    normalize_merchant: normalizeMerchant(merchant)\n  });\n\n}\n\nfunction normalizeMerchant(name) {\n  return name\n    .toUpperCase()\n    .replace(/[^A-Z0-9]/g, \"\")\n    .trim();\n}\n\nreturn result"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -624,
-        464
+        -480,
+        480
       ],
-      "id": "725339ed-44a2-4caa-9f53-a0aa8b362afb",
+      "id": "f97194fd-4585-47b3-83ed-b7bcc9f43872",
       "name": "dbsparser"
     },
     {
@@ -558,8 +514,132 @@
         688,
         528
       ],
-      "id": "c22a1e6c-878a-4d4c-89f2-1494002689ee",
+      "id": "d7f7b052-4f48-4754-84a9-7d3d80baaf53",
       "name": "If1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.textHtml }}",
+                    "rightValue": "PayLah!",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "12540cd0-0c4a-4ae1-9d83-bf44062c02ae"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "98146651-099b-49a6-a226-38d6d389d2ac",
+                    "leftValue": "={{ $json.textHtml }}",
+                    "rightValue": "DBS/POSB",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1264,
+        496
+      ],
+      "id": "25e38d75-cfc7-47c3-a5c8-b2be321b195d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "dataPropertyName": "textHtml",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "cleaned",
+              "cssSelector": " table tr:nth-of-type(4) p:nth-child(4)",
+              "returnValue": "html"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -1008,
+        624
+      ],
+      "id": "694fe5a3-c7c8-4eed-965a-79511ba3d44d",
+      "name": "paylah_html_parser1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nlet result = []\nfor (const item of $input.all()) {\n  // 1️⃣ Decode HTML entity\n  const text = item.json.cleaned.replace(/&amp;/g, \"&\");\n  \n  // 2️⃣ Extract values\n  const timeMatch = text.match(/Date\\s*&\\s*Time:\\s*([^\\n<]+)/i);\n  const amountMatch = text.match(/Amount:\\s*([A-Z]{3}\\d+\\.\\d+)/i);\n  const fromMatch = text.match(/From:\\s*([^\\n<]+)/i);\n  const toMatch = text.match(/To:\\s*([^\\n<]+)/i);\n  \n  // 3️⃣ Build result\n  result.push({\n    time: timeMatch ? timeMatch[1].trim() : null,\n    // currency: amountMatch ? amountMatch[1] : null,\n    amount: amountMatch ? amountMatch[1] : null,\n    identifier: fromMatch ? fromMatch[1].trim() : null,\n    merchant: toMatch ? toMatch[1].trim() : null\n  });\n\n}\nreturn result\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        624
+      ],
+      "id": "c1e2c46c-a3a2-44b8-b225-8b373f444d23",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -192,
+        208
+      ],
+      "id": "f3d0486d-348a-4227-9c70-9c2bce198668",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -640,
+        480
+      ],
+      "id": "8e5e8d23-79c3-4f99-99ba-1c6a065cb3e3",
+      "name": "Merge1"
     }
   ],
   "pinData": {},
@@ -573,7 +653,7 @@
             "index": 0
           },
           {
-            "node": "If",
+            "node": "Switch",
             "type": "main",
             "index": 0
           }
@@ -679,23 +759,6 @@
         ]
       ]
     },
-    "Loop Over Items": {
-      "main": [
-        [],
-        [
-          {
-            "node": "GetMCCFromCache",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "CreateAccountIfNotExists",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "MaribankParser": {
       "main": [
         [
@@ -707,22 +770,11 @@
         ]
       ]
     },
-    "If": {
-      "main": [
-        [
-          {
-            "node": "paylah_html_parser",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "paylah_html_parser": {
       "main": [
         [
           {
-            "node": "dbsparser",
+            "node": "Merge1",
             "type": "main",
             "index": 0
           }
@@ -761,6 +813,74 @@
           }
         ]
       ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "paylah_html_parser",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "paylah_html_parser1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "paylah_html_parser1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "CreateAccountIfNotExists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GetMCCFromCache",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "dbsparser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -769,10 +889,11 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "14034b33-8ae7-4316-b6aa-f6b4622dc566",
+  "versionId": "1ea73db0-d5be-40ba-9462-423786e2a05e",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "3331f7fcbc7fc9316fa650930206bb775c2eb4ca323f67bb1bd3156d07a2c022"
   },
-  "id": "k1QGJc82TewdjiPj",
+  "id": "vkm4biskY5Si5Lcg",
   "tags": []
 }

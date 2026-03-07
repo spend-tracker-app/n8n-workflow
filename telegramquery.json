@@ -15,82 +15,44 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        0,
-        0
+        -1424,
+        240
       ],
-      "id": "54b6d335-48e1-42d8-b5ed-2670d9f278d5",
+      "id": "142f82d5-c24c-48f8-82b4-9463f9e0fd17",
       "name": "Schedule Trigger"
     },
     {
       "parameters": {
-        "url": "=https://api.telegram.org/bot{{ $('TelegramToken').item.json.telegram_token }}/getUpdates?timeout=8&limit=1&offset={{ $('TelegramOffset').item.json.offset }}",
+        "url": "=https://api.telegram.org/bot{{ $('TelegramToken').item.json.token }}/getUpdates?timeout=8&limit=1&offset={{ $('TelegramOffset').item.json.offset }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        608,
-        0
+        -688,
+        240
       ],
-      "id": "03c0a947-5c12-4239-8b82-975d68d8342e",
+      "id": "978576ac-0990-46a2-8d49-d5773c61de63",
       "name": "HTTP Request"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "3b016cf1-8744-4664-a4e1-dcf21ca0402b",
-              "name": "telegram_token",
-              "value": "",
-              "type": "string"
-            },
-            {
-              "id": "e96f6282-d114-4ea0-93ba-71cf96a82882",
-              "name": "telegram_group",
-              "value": 0,
-              "type": "number"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        208,
-        0
-      ],
-      "id": "142c8b65-2895-41b4-80ef-e4e60cddb045",
-      "name": "TelegramToken"
     },
     {
       "parameters": {
         "operation": "get",
         "dataTableId": {
           "__rl": true,
-          "value": "z7GmItknpbbjqXtv",
-          "mode": "list",
-          "cachedResultName": "telegram_offset",
-          "cachedResultUrl": "/projects/jf0NNAoGF6pg12Ag/datatables/z7GmItknpbbjqXtv"
+          "value": "telegram_offset",
+          "mode": "name"
         },
         "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyValue": "1"
-            }
-          ]
-        },
         "limit": 1
       },
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        416,
-        0
+        -880,
+        240
       ],
-      "id": "65c19124-f76b-4f76-bc81-efa75321ae48",
+      "id": "8f1d49da-97db-4ec8-8da8-49f3e25883cf",
       "name": "TelegramOffset"
     },
     {
@@ -114,10 +76,10 @@
             },
             {
               "id": "70643a47-1d0f-4af8-94df-595d22e967b0",
-              "leftValue": "={{ $json.result[0].message.chat.id }}",
-              "rightValue": "={{ $('TelegramToken').item.json.telegram_group }}",
+              "leftValue": "='{{ $json.result[0].message.chat.id }}'",
+              "rightValue": "='{{ $('TelegramToken').item.json.group_id }}'",
               "operator": {
-                "type": "number",
+                "type": "string",
                 "operation": "equals"
               }
             }
@@ -129,10 +91,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        800,
-        0
+        -496,
+        240
       ],
-      "id": "a9e45454-7578-4f5a-b8d2-0abdeb4ee5e1",
+      "id": "4e5010cc-2518-4266-9468-a67959795e63",
       "name": "If"
     },
     {
@@ -140,10 +102,8 @@
         "operation": "update",
         "dataTableId": {
           "__rl": true,
-          "value": "z7GmItknpbbjqXtv",
-          "mode": "list",
-          "cachedResultName": "telegram_offset",
-          "cachedResultUrl": "/projects/jf0NNAoGF6pg12Ag/datatables/z7GmItknpbbjqXtv"
+          "value": "telegram_offset",
+          "mode": "name"
         },
         "filters": {
           "conditions": [
@@ -180,10 +140,10 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1424,
-        240
+        128,
+        480
       ],
-      "id": "044e993e-c399-4263-8d5a-3fc4c5472e44",
+      "id": "d17e3b3d-e1d9-44fe-9be9-72bfef35d6c7",
       "name": "Update row(s)"
     },
     {
@@ -268,10 +228,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        1008,
-        -96
+        -288,
+        144
       ],
-      "id": "082a3656-8618-4345-92de-769eba76d94b",
+      "id": "6c958d44-b0ca-4785-864a-0a67592b303a",
       "name": "Switch"
     },
     {
@@ -283,36 +243,39 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1296,
-        -240
+        0,
+        0
       ],
-      "id": "17d185c4-079d-48cc-b2ec-5b28a69ab282",
+      "id": "a8cc256f-bd5e-411e-9d9d-d6de3d827ef8",
       "name": "Execute a SQL query",
       "credentials": {
         "postgres": {
-          "id": "QP6jI9flpuTbPeqT",
+          "id": "tJk4TZtu62G05Qy6",
           "name": "Postgres account"
         }
       }
     },
     {
       "parameters": {
-        "chatId": "={{ $('TelegramToken').item.json.telegram_group }}",
-        "text": "=Total Amount Spent: SGD {{ $json.total_amount }}",
-        "additionalFields": {}
+        "chatId": "={{ $('TelegramToken').item.json.group_id }}",
+        "text": "=💸 <b>Total Spendings</b>\n\n<b>Total Amount: SGD {{ $json.total_amount }}</b>",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "=HTML"
+        }
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1472,
-        -240
+        176,
+        0
       ],
-      "id": "98e8dd1f-d906-4363-8ae8-f4ce28da1551",
+      "id": "a8454ae6-3313-4b0c-b123-cc6ce55b91fe",
       "name": "Send a text message",
       "webhookId": "ef90e087-9748-4a04-bc60-6977bd2c8454",
       "credentials": {
         "telegramApi": {
-          "id": "R1VPpIsFlgVT9T22",
+          "id": "nbHkKJJySQ1pgycv",
           "name": "Telegram account"
         }
       }
@@ -322,61 +285,8 @@
         "operation": "update",
         "dataTableId": {
           "__rl": true,
-          "value": "z7GmItknpbbjqXtv",
-          "mode": "list",
-          "cachedResultName": "telegram_offset",
-          "cachedResultUrl": "/projects/jf0NNAoGF6pg12Ag/datatables/z7GmItknpbbjqXtv"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyValue": "1"
-            }
-          ]
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "offset": "={{ $('HTTP Request').item.json.result[0].update_id+1 }}"
-          },
-          "matchingColumns": [
-            "offset"
-          ],
-          "schema": [
-            {
-              "id": "offset",
-              "displayName": "offset",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        1648,
-        -240
-      ],
-      "id": "772a21e2-35b1-4693-afa0-0dab49efcfe2",
-      "name": "Update row(s)1"
-    },
-    {
-      "parameters": {
-        "operation": "update",
-        "dataTableId": {
-          "__rl": true,
-          "value": "z7GmItknpbbjqXtv",
-          "mode": "list",
-          "cachedResultName": "telegram_offset",
-          "cachedResultUrl": "/projects/jf0NNAoGF6pg12Ag/datatables/z7GmItknpbbjqXtv"
+          "value": "telegram_offset",
+          "mode": "name"
         },
         "filters": {
           "conditions": [
@@ -413,10 +323,10 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1168,
-        208
+        -128,
+        448
       ],
-      "id": "b422ca09-4b7b-4c6a-ae3c-dfbf69b1b8ad",
+      "id": "d2cd99f9-578f-4803-afa1-b19ae47be4a3",
       "name": "Update row(s)2"
     },
     {
@@ -428,36 +338,36 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1408,
-        80
+        112,
+        320
       ],
-      "id": "30cf73d8-08ec-4524-86e4-d94d2b55c14e",
+      "id": "91ab8d68-ee5c-4c5c-ad4e-6c28019971b5",
       "name": "Execute a SQL query1",
       "credentials": {
         "postgres": {
-          "id": "QP6jI9flpuTbPeqT",
+          "id": "tJk4TZtu62G05Qy6",
           "name": "Postgres account"
         }
       }
     },
     {
       "parameters": {
-        "chatId": "={{ $('TelegramToken').item.json.telegram_group }}",
+        "chatId": "={{ $('TelegramToken').item.json.group_id }}",
         "text": "=Card/Wallet: {{ $json.bank }} {{ $json.id }}\nTotal Amount Spent: SGD {{ $json.total_amount }}",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1632,
-        80
+        336,
+        320
       ],
-      "id": "74636087-8b45-4e29-ba91-0d5b2c54684c",
+      "id": "7db2b10a-08d2-444f-ac2b-2cd04bac8328",
       "name": "Send a text message1",
       "webhookId": "ef90e087-9748-4a04-bc60-6977bd2c8454",
       "credentials": {
         "telegramApi": {
-          "id": "R1VPpIsFlgVT9T22",
+          "id": "nbHkKJJySQ1pgycv",
           "name": "Telegram account"
         }
       }
@@ -467,10 +377,8 @@
         "operation": "update",
         "dataTableId": {
           "__rl": true,
-          "value": "z7GmItknpbbjqXtv",
-          "mode": "list",
-          "cachedResultName": "telegram_offset",
-          "cachedResultUrl": "/projects/jf0NNAoGF6pg12Ag/datatables/z7GmItknpbbjqXtv"
+          "value": "telegram_offset",
+          "mode": "name"
         },
         "filters": {
           "conditions": [
@@ -507,10 +415,10 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1840,
-        80
+        544,
+        320
       ],
-      "id": "8bcffa26-dbac-4793-aeb6-0dfe65c69149",
+      "id": "3bc07a14-dc77-4a3f-b761-5af0ac094c0c",
       "name": "Update row(s)3"
     },
     {
@@ -540,11 +448,185 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        944,
-        224
+        -352,
+        464
       ],
-      "id": "ab0e875f-a4da-4515-9d9a-c131e6f2a118",
+      "id": "17fe76bf-cab4-4830-b6de-d983bbde758d",
       "name": "If1"
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "telegram_offset",
+        "columns": {
+          "column": [
+            {
+              "name": "offset",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {
+          "createIfNotExists": true
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -1248,
+        240
+      ],
+      "id": "0e346bb8-c813-4cda-a045-7dab72b26074",
+      "name": "Create a data table"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "telegram_offset",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [
+            "offset"
+          ],
+          "schema": [
+            {
+              "id": "offset",
+              "displayName": "offset",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -720,
+        464
+      ],
+      "id": "c5316b40-39e6-4c37-9dfb-52acc1cc543a",
+      "name": "Insert row",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "telegram_offset",
+          "mode": "name"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "1"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -928,
+        464
+      ],
+      "id": "36ec3256-cecb-4f09-bedd-f50dbdf008b8",
+      "name": "If row does not exist",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "telegram_offset",
+          "mode": "name"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "1"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "offset": "={{ $('HTTP Request').item.json.result[0].update_id+1 }}"
+          },
+          "matchingColumns": [
+            "offset"
+          ],
+          "schema": [
+            {
+              "id": "offset",
+              "displayName": "offset",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        0
+      ],
+      "id": "cc373266-3c17-4c35-bd86-6b932e8c433d",
+      "name": "Update row(s)1"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "telegram",
+          "mode": "list",
+          "cachedResultName": "telegram"
+        },
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1072,
+        240
+      ],
+      "id": "3303011a-3373-46eb-a202-3a309429e2eb",
+      "name": "TelegramToken",
+      "credentials": {
+        "postgres": {
+          "id": "tJk4TZtu62G05Qy6",
+          "name": "Postgres account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -553,18 +635,7 @@
       "main": [
         [
           {
-            "node": "TelegramToken",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "TelegramToken": {
-      "main": [
-        [
-          {
-            "node": "TelegramOffset",
+            "node": "Create a data table",
             "type": "main",
             "index": 0
           }
@@ -690,6 +761,44 @@
           }
         ]
       ]
+    },
+    "Create a data table": {
+      "main": [
+        [
+          {
+            "node": "TelegramToken",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If row does not exist": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TelegramToken": {
+      "main": [
+        [
+          {
+            "node": "TelegramOffset",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If row does not exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -698,11 +807,11 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "6abe8ff0-b6c4-4b88-84eb-ff863dd2f94b",
+  "versionId": "32a72bc4-7b46-4673-8a39-ff2d6d26f500",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "3331f7fcbc7fc9316fa650930206bb775c2eb4ca323f67bb1bd3156d07a2c022"
+    "instanceId": "4916a0a99b8771ceaf3fbe35ca3e9e1bd743b801c4a3da404f3a4f4e253c2221"
   },
-  "id": "w79Hl0WlrMFFUC7g",
+  "id": "v88bWUwivDxmbzvp",
   "tags": []
 }

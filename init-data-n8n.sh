@@ -59,5 +59,5 @@ EOT
 n8n import:credentials --input credentials.json
 n8n import:workflow --input=/workflows/spendtracker-workflow.json
 n8n import:workflow --input=/workflows/telegramquery.json
-n8n publish:workflow --id=O6qAHpVmgNO48mlI
-n8n publish:workflow --id=v88bWUwivDxmbzvp
+n8n publish:workflow --id=spendtracker
+n8n publish:workflow --id=telegramquery

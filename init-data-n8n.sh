@@ -10,9 +10,9 @@ cat <<-EOT >credentials.json
     "name": "Postgres account",
     "data": {
       "host": "postgres",
-      "database": "n8n",
-      "user": "changeUser",
-      "password": "changePassword"
+      "database": "${DB_POSTGRESDB_DATABASE}",
+      "user": "${DB_POSTGRESDB_USER}",
+      "password": "${DB_POSTGRESDB_PASSWORD}"
     },
     "type": "postgres",
     "isManaged": false,

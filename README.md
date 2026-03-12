@@ -1,29 +1,13 @@
-# Project Setup Guide
+# n8n Spend Tracker Setup & Upgrade Guide
 
-This project uses Docker Compose to run [n8n](https://n8n.io/) with a PostgreSQL database. All credentials and workflows are configured automatically — you only need to supply a `.env` file before starting.
+This repo runs n8n + PostgreSQL via Docker Compose, imports workflows automatically, and supports local MCC lookup from `mcc/mcclist.csv`.
 
 ## Prerequisites
 
-- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on your machine.
+- Docker + Docker Compose installed.
+- A `.env` file with all required variables.
 
-## Getting Started
-
-### 1. Clone the repository
-
-```sh
-git clone https://github.com/ooijingkai10/n8n-workflow.git
-cd n8n-workflow
-```
-
-### 2. Create your `.env` file
-
-Copy the example environment file and fill in your credentials:
-
-```sh
-cp .env.example .env
-```
-
-Open `.env` and replace the placeholder values:
+Required env vars:
 
 | Variable | Description |
 |---|---|
@@ -32,63 +16,96 @@ Open `.env` and replace the placeholder values:
 | `POSTGRES_DB` | PostgreSQL database name |
 | `POSTGRES_NON_ROOT_USER` | PostgreSQL non-root username used by n8n |
 | `POSTGRES_NON_ROOT_PASSWORD` | PostgreSQL non-root password used by n8n |
-| `TELEGRAM_BOT_TOKEN` | Your Telegram bot token (see instructions below) |
-| `TELEGRAM_GROUP_ID` | The Telegram group/chat ID where the bot will send messages |
-| `IMAP_USER` | Your Gmail address (e.g. `user@gmail.com`) |
-| `IMAP_PASSWORD` | Your Gmail App Password (see instructions below) |
-| `IMAP_HOST` | IMAP server host (e.g. `imap.gmail.com`) |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token |
+| `TELEGRAM_GROUP_ID` | Telegram group/chat ID |
+| `IMAP_USER` | IMAP username (for Gmail, full email) |
+| `IMAP_PASSWORD` | IMAP password (for Gmail, app password) |
+| `IMAP_HOST` | IMAP server host |
 
-#### How to get your Telegram Bot Token
+---
 
-1. Open Telegram and start a chat with [@BotFather](https://t.me/BotFather).
-2. Send `/newbot` and follow the prompts to create a new bot.
-3. BotFather will give you a token like `123456789:ABCDefGhIJKlmNoPQRsTUVwxyZ` — copy this into `TELEGRAM_BOT_TOKEN`.
+## New Users (Fresh Setup)
 
-#### How to get your Telegram Group ID
+1. Clone and enter repo:
 
-1. Add [@Getmyid_bot](https://t.me/Getmyid_bot) to the group temporarily.
-2. It will reply with the group/chat ID — copy the number (including the leading `-` if present) into `TELEGRAM_GROUP_ID`.
-3. Remove `@Getmyid_bot` from the group after you have the ID.
+```sh
+git clone https://github.com/ooijingkai10/n8n-workflow.git
+cd n8n-workflow
+```
 
-#### Add your bot to the Telegram group with admin permission
+2. Create `.env`:
 
-1. Open the group in Telegram.
-2. Go to **Group Info → Administrators → Add Admin**.
-3. Search for your bot by its username and add it as an administrator.
+```sh
+cp .env.example .env
+```
 
-> Admin permission is required so the bot can send messages to the group.
-
-#### How to get your Gmail App Password (for IMAP)
-
-1. Make sure **2-Step Verification** is enabled on your Google Account.
-2. Go to [https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords).
-3. Generate a new App Password for "Mail".
-4. Copy the 16-character password into `IMAP_PASSWORD`.
-
-> Use your full Gmail address as `IMAP_USER` (e.g. `user@gmail.com`).
-
-### 3. Start the automation stack
+3. Start services:
 
 ```sh
 docker compose up -d
 ```
 
-This single command will:
-- Start a **PostgreSQL** database and create the required tables.
-- Start **n8n** and automatically import all workflows.
-- Inject your credentials (IMAP, Telegram, PostgreSQL) into n8n — no manual configuration needed.
+This starts PostgreSQL + n8n, creates base tables, imports workflows, and loads MCC reference data from CSV during first DB initialization.
 
-### 4. Access n8n (optional)
+4. Open n8n (optional):
 
-Open [http://localhost:5678](http://localhost:5678) in your browser to view or manage your workflows.
+- http://localhost:5678
 
-## Stopping the stack
+---
+
+## Existing Users (Upgrade + DB Migration)
+
+Use this when you already have an older database volume and are pulling the latest repo changes.
+
+### 1) Backup your current database (recommended)
+
+```sh
+docker compose exec postgres pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" > backup-before-migration.sql
+```
+
+### 2) Pull latest code and restart services
+
+```sh
+git pull
+docker compose up -d
+```
+
+### 3) Run migration script once
+
+```sh
+docker compose exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /dev/stdin < migration.sql
+```
+
+This migration handles:
+- `transactions.merchant_id` backfill + FK
+- `mcc_reference` table creation (Note: Ensure that the mcclist.csv is loaded onto postgres container in the /mcc path)
+- index creation and extension setup
+
+---
+
+## Useful Commands
+
+Start:
+
+```sh
+docker compose up -d
+```
+
+Stop:
 
 ```sh
 docker compose down
 ```
 
+View logs:
+
+```sh
+docker compose logs -f
+```
+
+---
+
 ## Security Notes
 
-- Keep your `.env` file private — never commit it to version control (it is already listed in `.gitignore`).
-- Rotate your Gmail App Password and Telegram Bot Token if they are ever exposed.
+- Keep `.env` private and out of version control.
+- Rotate Telegram and IMAP credentials if exposed.

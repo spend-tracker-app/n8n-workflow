@@ -21,6 +21,25 @@ if [ -n "${POSTGRES_NON_ROOT_USER:-}" ] && [ -n "${POSTGRES_NON_ROOT_PASSWORD:-}
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
+    CREATE TABLE mcc_reference (
+      mcc TEXT PRIMARY KEY,
+      edited_description TEXT,
+      combined_description TEXT,
+      usda_description TEXT,
+      irs_description TEXT,
+      irs_reportable TEXT
+    );
+    COPY mcc_reference (
+      mcc,
+      edited_description,
+      combined_description,
+      usda_description,
+      irs_description,
+      irs_reportable
+    )
+    FROM '/mcc/mcclist.csv'
+    WITH (FORMAT csv, HEADER true);
+    CREATE INDEX IF NOT EXISTS idx_mcc_reference_mcc ON mcc_reference (mcc);
     CREATE TABLE accounts (
       id BIGSERIAL PRIMARY KEY,
       bank TEXT NOT NULL,        -- "Mari CC", "DBS PayLah"
@@ -49,6 +68,7 @@ if [ -n "${POSTGRES_NON_ROOT_USER:-}" ] && [ -n "${POSTGRES_NON_ROOT_PASSWORD:-}
         group_id BIGINT
     );
     INSERT INTO telegram (token, group_id) VALUES ('${TELEGRAM_BOT_TOKEN}', ${TELEGRAM_GROUP_ID});
+    CREATE EXTENSION pg_trgm;
 	EOSQL
 else
   echo "SETUP INFO: No Environment variables given!"

@@ -3,19 +3,19 @@
   "nodes": [
     {
       "parameters": {
-        "mailbox": "spendingstest",
+        "mailbox": "spendings",
         "options": {
-          "customEmailConfig": "=[\"ALL\"]",
+          "customEmailConfig": "=[\"UNSEEN\"]",
           "forceReconnect": 30
         }
       },
       "type": "n8n-nodes-base.emailReadImap",
       "typeVersion": 2.1,
       "position": [
-        -1456,
-        176
+        -608,
+        224
       ],
-      "id": "57a253e7-7bc1-4d1c-9515-663d44acb58d",
+      "id": "61107edd-2409-481a-864c-ad336efdffaf",
       "name": "Email Trigger (IMAP)",
       "credentials": {
         "imap": {
@@ -27,7 +27,7 @@
     {
       "parameters": {
         "chatId": "={{ $('GetTelegram').item.json.group_id }}",
-        "text": "=Spend Card: {{ $('CreateTransactionEntry').item.json.bank }} {{ $('CreateTransactionEntry').item.json.identifier }}\nSpend Amount: {{ $json.currency }} {{ $json.amount }}\nMerchant: {{ $json.merchant }}\nMCC: {{ $json.mcc_code }}\nCategory: {{ $json.category }}\nTime: {{ $('CreateTransactionEntry').item.json.time }}",
+        "text": "=Spend Card: {{ $('CreateTransactionEntry').item.json.bank }} {{ $('CreateTransactionEntry').item.json.identifier }}\nSpend Amount: {{ $json.currency }} {{ $json.amount }}\nMerchant: {{ $json.merchant }}\nMCC: {{ $json.mcc_code }}\nCategory: {{ $json.category }}\nTime: {{ $('CreateTransactionEntry').item.json.time }}\nTransaction ID: {{ $json.id }}",
         "replyMarkup": "inlineKeyboard",
         "inlineKeyboard": {
           "rows": [
@@ -52,10 +52,10 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2208,
-        320
+        3648,
+        384
       ],
-      "id": "53cdb6c5-833e-4bca-9596-b59a26f0658b",
+      "id": "9b8e6e7a-03b1-41c9-824f-06ca95da3327",
       "name": "Send a text message",
       "webhookId": "1ae86153-0057-4c83-9e48-54be031f2608",
       "credentials": {
@@ -74,10 +74,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        0,
-        0
+        848,
+        48
       ],
-      "id": "60bb8b32-69db-47c4-85b8-51ce2ba2fc8b",
+      "id": "12c687ab-7cbe-4fca-872b-0e44954928e3",
       "name": "CreateAccountIfNotExists",
       "executeOnce": false,
       "alwaysOutputData": true,
@@ -97,10 +97,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        16,
-        256
+        864,
+        304
       ],
-      "id": "94db91cb-37dc-44b2-9534-9fd3aa0c948e",
+      "id": "f66fc49b-abba-4f4d-ae4c-0e183d37dd78",
       "name": "GetMCCFromCache",
       "executeOnce": false,
       "alwaysOutputData": true,
@@ -123,34 +123,36 @@
           "conditions": [
             {
               "id": "801b1e8f-5271-47e5-b81a-830d94786aae",
-              "leftValue": "={{ $('GetMCCFromCache').item.json.mcc_code }}",
-              "rightValue": "null",
+              "leftValue": "={{ $('GetMCCFromCache').item.json }}",
+              "rightValue": 0,
               "operator": {
-                "type": "string",
-                "operation": "notEquals"
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
               }
             },
             {
-              "id": "18ec8176-24a6-483f-bb8c-afcdfc37e4eb",
-              "leftValue": "={{ $('GetFromMCCSim').item.json.mcc_code  }}",
-              "rightValue": "null",
+              "id": "2e9a65ef-a0fd-4fe4-bfdd-c8d5bf745efd",
+              "leftValue": "={{ String($('GetMCCFromCache').item.json.mcc_code || '').trim() }}",
+              "rightValue": "",
               "operator": {
                 "type": "string",
-                "operation": "notEquals"
+                "operation": "notEmpty",
+                "singleValue": true
               }
             }
           ],
-          "combinator": "or"
+          "combinator": "and"
         },
         "options": {}
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        624,
-        224
+        1472,
+        272
       ],
-      "id": "01ecabb5-e9a9-42ec-8aeb-953cb24c528e",
+      "id": "59998484-7b15-4fd1-9863-3df264a4b1a3",
       "name": "IfCached"
     },
     {
@@ -161,139 +163,133 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        784,
-        384
+        1824,
+        512
       ],
-      "id": "88b3177b-b15a-4be1-8f08-4badd5f7a4e0",
+      "id": "f457870a-2499-4516-b42e-7e82e34219cb",
       "name": "GetMCCFromAPI",
       "alwaysOutputData": true
     },
     {
       "parameters": {
-        "schema": {
-          "__rl": true,
-          "value": "public",
-          "mode": "list",
-          "cachedResultName": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "merchant_mcc_cache",
-          "mode": "list",
-          "cachedResultName": "merchant_mcc_cache"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "merchant_normalized": "={{ $('Merge').item.json.normalize_merchant }}",
-            "merchant_original": "={{ $('Merge').item.json.merchant }}",
-            "mcc_code": "={{ $json.MCC }}",
-            "mcc_description": "={{ $json.Category }}",
-            "category": "={{ $json.Category }}"
-          },
-          "matchingColumns": [
-            "id"
-          ],
-          "schema": [
-            {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "merchant_normalized",
-              "displayName": "merchant_normalized",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "merchant_original",
-              "displayName": "merchant_original",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "mcc_code",
-              "displayName": "mcc_code",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "mcc_description",
-              "displayName": "mcc_description",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "category",
-              "displayName": "category",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "manual_override",
-              "displayName": "manual_override",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "boolean",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "updated_at",
-              "displayName": "updated_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {
-          "skipOnConflict": true
-        }
+        "operation": "executeQuery",
+        "query": "INSERT INTO merchant_mcc_cache (\n    merchant_normalized,\n    merchant_original,\n    mcc_code,\n    mcc_description,\n    category\n)\nVALUES (\n    '{{ $('Loop Over Items').item.json.normalize_merchant }}',\n    '{{ $('Loop Over Items').item.json.merchant }}',\n    NULLIF('{{ $json.MCC || '' }}', ''),\n    NULLIF('{{ $json.Category || '' }}', ''),\n    NULLIF('{{ $json.Category || '' }}', '')\n)\nON CONFLICT (merchant_normalized) DO UPDATE\nSET merchant_original = EXCLUDED.merchant_original,\n    mcc_code = COALESCE(EXCLUDED.mcc_code, merchant_mcc_cache.mcc_code),\n    mcc_description = COALESCE(EXCLUDED.mcc_description, merchant_mcc_cache.mcc_description),\n    category = COALESCE(EXCLUDED.category, merchant_mcc_cache.category),\n    updated_at = NOW()\nRETURNING *;",
+        "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1264,
-        544
+        2144,
+        512
       ],
-      "id": "1a97c47d-d878-4b28-af1a-12bc9c96ed2a",
-      "name": "CacheMCC",
+      "id": "7b10d298-414e-4961-b4ea-67f4e1948c04",
+      "name": "CreateCacheFromAPI",
+      "credentials": {
+        "postgres": {
+          "id": "tJk4TZtu62G05Qy6",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "86bcab1f-c85f-4840-b265-42f54b96cb19",
+              "name": "id",
+              "value": "={{ $('GetMCCFromCache').item.json.id }}",
+              "type": "number"
+            },
+            {
+              "id": "7ccfda31-f9f2-4578-bd38-7a073fbbd5d7",
+              "name": "mcc_code",
+              "value": "={{ $('GetMCCFromCache').item.json.mcc_code }}",
+              "type": "string"
+            },
+            {
+              "id": "8edcb769-5d46-44ec-89ff-b5da12c8fc54",
+              "name": "mcc_description",
+              "value": "={{ $('GetMCCFromCache').item.json.mcc_description }}",
+              "type": "string"
+            },
+            {
+              "id": "b122fd3d-a35b-44ff-b9e7-211e395b3406",
+              "name": "category",
+              "value": "={{ $('GetMCCFromCache').item.json.category || $('GetMCCFromCache').item.json.mcc_description }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1632,
+        144
+      ],
+      "id": "26a72051-f489-4853-a93b-fae1f690e9f1",
+      "name": "UseExactCache"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b8a04b85-cbea-4d01-b7e9-b0f0d9030f01",
+              "leftValue": "={{ $('GetFromMCCSim').item.json }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "0d48f85f-57bd-4ab6-aa6a-70a784944d38",
+              "leftValue": "={{ String($('GetFromMCCSim').item.json.mcc_code || '').trim() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1632,
+        304
+      ],
+      "id": "37eef2df-8c0c-4c9d-b15b-c845cd74acae",
+      "name": "IfSimilar"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO merchant_mcc_cache (\n    merchant_normalized,\n    merchant_original,\n    mcc_code,\n    mcc_description,\n    category\n)\nVALUES (\n    '{{ $('Loop Over Items').item.json.normalize_merchant }}',\n    '{{ $('Loop Over Items').item.json.merchant }}',\n    NULLIF('{{ $('GetFromMCCSim').item.json.mcc_code || '' }}', ''),\n    NULLIF('{{ $('GetFromMCCSim').item.json.mcc_description || '' }}', ''),\n    NULLIF('{{ $('GetFromMCCSim').item.json.category || $('GetFromMCCSim').item.json.mcc_description || '' }}', '')\n)\nON CONFLICT (merchant_normalized) DO UPDATE\nSET merchant_original = EXCLUDED.merchant_original,\n    mcc_code = COALESCE(EXCLUDED.mcc_code, merchant_mcc_cache.mcc_code),\n    mcc_description = COALESCE(EXCLUDED.mcc_description, merchant_mcc_cache.mcc_description),\n    category = COALESCE(EXCLUDED.category, merchant_mcc_cache.category),\n    updated_at = NOW()\nRETURNING *;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1856,
+        304
+      ],
+      "id": "b3d0d611-399e-443d-a511-16dce0fd41f9",
+      "name": "CreateCacheFromSimilar",
       "credentials": {
         "postgres": {
           "id": "tJk4TZtu62G05Qy6",
@@ -308,14 +304,20 @@
             {
               "id": "944bb8ec-fc55-4028-89ba-ea9f85f5db50",
               "name": "MCC",
-              "value": "={{ $('GetMCCFromCache').item.json.mcc_code || $json.MCC }}",
+              "value": "={{ $json.mcc_code }}",
               "type": "string"
             },
             {
               "id": "06418e6a-7ac8-496c-b691-7aaf67aa97f5",
               "name": "Category",
-              "value": "={{ $('GetMCCFromCache').item.json.category || $json.Category }}",
+              "value": "={{ $json.category || $json.mcc_description }}",
               "type": "string"
+            },
+            {
+              "id": "bf649189-294d-4db5-8ecf-d1b2ecb18365",
+              "name": "merchant_id",
+              "value": "={{ $json.id }}",
+              "type": "number"
             },
             {
               "id": "1e33b481-62c8-4499-88a1-9793469ca585",
@@ -360,10 +362,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        992,
-        176
+        2448,
+        384
       ],
-      "id": "e156a3df-2b2b-4fcd-924e-025029a1e10f",
+      "id": "edd55007-2c27-4f0b-aad0-92b2bde46a5a",
       "name": "CreateTransactionEntry"
     },
     {
@@ -374,23 +376,24 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1248,
-        320
+        2688,
+        384
       ],
-      "id": "2574e378-61dd-4df3-9999-8ec5f6aeb5e9",
-      "name": "GetConversionRates"
+      "id": "7bc4c607-3c12-4c6e-8fac-eb18fd785043",
+      "name": "GetConversionRates",
+      "continueOnFail": true
     },
     {
       "parameters": {
-        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n// const crypto = require('crypto');\nfor (const item of $('CreateTransactionEntry').all()) {\n  if (item.json.currency == \"SGD\") {\n    item.json.amount_base_currency = item.json.amount\n  } else {\n    item.json.amount_base_currency = item.json.amount / $(\"GetConversionRates\").first().json.sgd[item.json.currency.toLowerCase()]\n    item.json.amount_base_currency = Math.round(item.json.amount_base_currency * 100) / 100\n  }\n  \n  \n  const raw = [\n    item.json.bank,\n    item.json.identifier,\n    item.json.merchant,\n    item.json.amount,\n    item.json.time\n  ].join(\"|\");\n\n\n  item.json.transaction_hash = raw;\n}\n\nreturn $('CreateTransactionEntry').all();"
+        "jsCode": "const entries = $('CreateTransactionEntry').all();\n\nlet rates = null;\ntry {\n  const ratePayload = $('GetConversionRates').first()?.json;\n  rates = ratePayload?.sgd ?? null;\n} catch (e) {\n  rates = null;\n}\n\nfor (const item of entries) {\n  const currency = String(item.json.currency || '').toUpperCase();\n  const amount = Number(item.json.amount);\n\n  // Safe fallback: if FX rate is unavailable/invalid, keep original amount\n  item.json.amount_base_currency = amount;\n\n  if (currency !== 'SGD' && Number.isFinite(amount)) {\n    const rate = Number(rates?.[currency.toLowerCase()]);\n    if (Number.isFinite(rate) && rate > 0) {\n      item.json.amount_base_currency = Math.round((amount / rate) * 100) / 100;\n      item.json.fx_fallback_used = false;\n    } else {\n      item.json.fx_fallback_used = true;\n    }\n  } else {\n    item.json.fx_fallback_used = false;\n  }\n\n  const raw = [\n    item.json.bank,\n    item.json.identifier,\n    item.json.merchant,\n    item.json.amount,\n    item.json.time\n  ].join('|');\n\n  item.json.transaction_hash = raw;\n}\n\nreturn entries;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1488,
-        320
+        2928,
+        384
       ],
-      "id": "9c6a562c-b394-4f7a-bb0e-d4343a2531e7",
+      "id": "a21b0f00-049b-4dd0-b77b-4267238a6af0",
       "name": "ConvertCurrencyIfNeeded"
     },
     {
@@ -402,10 +405,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1744,
-        320
+        3184,
+        384
       ],
-      "id": "c6b849c8-901c-477d-afe7-dd41d703fbf4",
+      "id": "a1f837dc-051c-4a19-92ec-c68f47afbdb4",
       "name": "GetAccount",
       "executeOnce": false,
       "alwaysOutputData": true,
@@ -419,16 +422,16 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO transactions (\n    account_id,\n    merchant,\n    amount,\n    currency,\n    amount_base_currency,\n    category,\n    mcc_code,\n    transaction_timestamp,\n    transaction_hash\n)\nVALUES (\n    {{ $json.id }},\n    '{{ $('ConvertCurrencyIfNeeded').item.json.merchant }}',\n    {{ $('ConvertCurrencyIfNeeded').item.json.amount }},\n    '{{ $('ConvertCurrencyIfNeeded').item.json.currency }}',\n    {{ $('ConvertCurrencyIfNeeded').item.json.amount_base_currency }},\n    '{{ $('ConvertCurrencyIfNeeded').item.json.Category }}',\n    '{{ $('ConvertCurrencyIfNeeded').item.json.MCC }}',\n    '{{ $('ConvertCurrencyIfNeeded').item.json.time }}',\n    '{{ $('ConvertCurrencyIfNeeded').item.json.transaction_hash }}'\n)\nON CONFLICT (transaction_hash) DO UPDATE\nSET transaction_hash = transactions.transaction_hash  -- dummy update to trigger RETURNING\nRETURNING *;",
+        "query": "INSERT INTO transactions (\n    account_id,\n    merchant_id,\n    merchant,\n    amount,\n    currency,\n    amount_base_currency,\n    base_currency,\n    category,\n    mcc_code,\n    transaction_timestamp,\n    transaction_hash\n)\nVALUES (\n    {{ $json.id }},\n    {{ $('ConvertCurrencyIfNeeded').item.json.merchant_id }},\n    '{{ $('ConvertCurrencyIfNeeded').item.json.merchant }}',\n    {{ $('ConvertCurrencyIfNeeded').item.json.amount }},\n    '{{ $('ConvertCurrencyIfNeeded').item.json.currency }}',\n    {{ $('ConvertCurrencyIfNeeded').item.json.amount_base_currency }},\n    '{{ $('ConvertCurrencyIfNeeded').item.json.fx_fallback_used ? $('ConvertCurrencyIfNeeded').item.json.currency : 'SGD' }}',\n    '{{ $('ConvertCurrencyIfNeeded').item.json.Category }}',\n    '{{ $('ConvertCurrencyIfNeeded').item.json.MCC }}',\n    '{{ $('ConvertCurrencyIfNeeded').item.json.time }}',\n    '{{ $('ConvertCurrencyIfNeeded').item.json.transaction_hash }}'\n)\nON CONFLICT (transaction_hash) DO UPDATE\nSET transaction_hash = transactions.transaction_hash  -- dummy update to trigger RETURNING\nRETURNING *;",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1984,
-        320
+        3424,
+        384
       ],
-      "id": "e5e4dd8c-a982-4694-9db8-e6dfb9c036cf",
+      "id": "0870d0e0-5f7a-4933-8d2b-086e25e7e216",
       "name": "CreateTransaction",
       "credentials": {
         "postgres": {
@@ -444,10 +447,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -848,
-        176
+        0,
+        224
       ],
-      "id": "173fa08e-8365-46a7-8c9d-caf06f73e243",
+      "id": "a718ad7e-c554-468c-9dce-e0092bdd3c5e",
       "name": "MaribankParser"
     },
     {
@@ -480,10 +483,10 @@
       "type": "n8n-nodes-base.html",
       "typeVersion": 1.2,
       "position": [
-        -880,
-        432
+        -32,
+        480
       ],
-      "id": "8df24bb9-2ef5-4c68-be30-57551cdcc7d1",
+      "id": "4bcc978d-8a01-4343-ad13-57e0556a0c47",
       "name": "paylah_html_parser"
     },
     {
@@ -493,10 +496,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -368,
-        208
+        480,
+        256
       ],
-      "id": "a23b33ab-f488-48db-8f25-08a5f82b4468",
+      "id": "c934b76d-296a-41fc-ac7b-24b43d5409d8",
       "name": "Merge"
     },
     {
@@ -506,45 +509,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -480,
-        480
+        368,
+        528
       ],
-      "id": "346230e4-2f09-40d1-a3ce-8b4b73e099a0",
+      "id": "8c0cd2f2-4a6e-4eea-beae-401fbdcd65fe",
       "name": "dbsparser"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "590ec9c8-3eed-4685-bb68-09a21bc1613f",
-              "leftValue": "={{ $json }}",
-              "rightValue": 0,
-              "operator": {
-                "type": "object",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        1024,
-        560
-      ],
-      "id": "8b149a6f-1131-458b-99b4-52dc97bf85dc",
-      "name": "If1"
     },
     {
       "parameters": {
@@ -601,10 +570,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -1264,
-        496
+        -416,
+        544
       ],
-      "id": "c93e5076-2115-40ca-9b9e-0c91820faf3e",
+      "id": "3981bada-c880-4942-8551-5dda82c7dac7",
       "name": "Switch"
     },
     {
@@ -625,10 +594,10 @@
       "type": "n8n-nodes-base.html",
       "typeVersion": 1.2,
       "position": [
-        -1008,
-        624
+        -160,
+        672
       ],
-      "id": "50ae9e12-86d4-46ae-a33a-3fa98a2aa3dd",
+      "id": "668709ce-a0ac-47ce-8ee5-680f3f3bd851",
       "name": "paylah_html_parser1"
     },
     {
@@ -638,10 +607,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -816,
-        624
+        32,
+        672
       ],
-      "id": "ab2e48d2-96f6-4a32-bd19-57c4d87964b3",
+      "id": "4bd81f10-08f7-4dce-87b4-1326d3939f14",
       "name": "Code in JavaScript"
     },
     {
@@ -653,10 +622,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -192,
-        208
+        656,
+        256
       ],
-      "id": "178a5e93-18c1-4f0c-9849-e68fd066716d",
+      "id": "4d886c81-2043-48f4-b6f4-177d53ace597",
       "name": "Loop Over Items"
     },
     {
@@ -664,10 +633,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -640,
-        480
+        208,
+        528
       ],
-      "id": "d30c224c-cfe3-45c4-977f-b98d30a05e29",
+      "id": "1431a434-4bd7-4ccc-a1ee-4ef04c9d2afa",
       "name": "Merge1"
     },
     {
@@ -677,10 +646,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -848,
-        -48
+        0,
+        0
       ],
-      "id": "6b7ce44a-1476-47d7-bed2-9fddd590c6df",
+      "id": "944b8189-0e06-4c2f-af11-f94719a243e9",
       "name": "UobParser"
     },
     {
@@ -692,10 +661,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        448,
-        224
+        1296,
+        272
       ],
-      "id": "66c8c7d7-9be7-4d30-9a2d-22aa2fa4c096",
+      "id": "f17deee2-728b-4f5f-addf-ebb0832016a7",
       "name": "GetTelegram",
       "executeOnce": false,
       "alwaysOutputData": true,
@@ -709,16 +678,16 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT *,\n       similarity('{{ $('Loop Over Items').item.json.normalize_merchant }}', merchant_normalized) AS sim\nFROM merchant_mcc_cache WHERE similarity('{{ $('Loop Over Items').item.json.normalize_merchant }}', merchant_normalized) > 0.4\nORDER BY sim DESC;",
+        "query": "SELECT *,\n       similarity('{{ $('Loop Over Items').item.json.normalize_merchant }}', merchant_normalized) AS sim\nFROM merchant_mcc_cache WHERE similarity('{{ $('Loop Over Items').item.json.normalize_merchant }}', merchant_normalized) > 0.4\nORDER BY sim DESC\nLIMIT 1;",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        224,
-        256
+        1072,
+        304
       ],
-      "id": "d816e352-e524-4ede-9989-dbc9935f7c15",
+      "id": "ecf589b2-b443-4d94-b176-9763fc6641d8",
       "name": "GetFromMCCSim",
       "alwaysOutputData": true,
       "credentials": {
@@ -767,7 +736,58 @@
       "main": [
         [
           {
+            "node": "UseExactCache",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IfSimilar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetMCCFromAPI": {
+      "main": [
+        [
+          {
+            "node": "CreateCacheFromAPI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CreateCacheFromAPI": {
+      "main": [
+        [
+          {
             "node": "CreateTransactionEntry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UseExactCache": {
+      "main": [
+        [
+          {
+            "node": "CreateTransactionEntry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IfSimilar": {
+      "main": [
+        [
+          {
+            "node": "CreateCacheFromSimilar",
             "type": "main",
             "index": 0
           }
@@ -781,16 +801,11 @@
         ]
       ]
     },
-    "GetMCCFromAPI": {
+    "CreateCacheFromSimilar": {
       "main": [
         [
           {
             "node": "CreateTransactionEntry",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "If1",
             "type": "main",
             "index": 0
           }
@@ -841,6 +856,17 @@
         ]
       ]
     },
+    "CreateTransaction": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "MaribankParser": {
       "main": [
         [
@@ -881,17 +907,6 @@
             "node": "Merge",
             "type": "main",
             "index": 2
-          }
-        ]
-      ]
-    },
-    "If1": {
-      "main": [
-        [
-          {
-            "node": "CacheMCC",
-            "type": "main",
-            "index": 0
           }
         ]
       ]
@@ -1001,17 +1016,6 @@
           }
         ]
       ]
-    },
-    "CreateTransaction": {
-      "main": [
-        [
-          {
-            "node": "Send a text message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "active": true,
@@ -1020,10 +1024,9 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "a612be80-d836-4fcd-8ec9-a5fbace640d3",
+  "versionId": "2c426634-9a9c-4f51-a36b-9dd555134742",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "cb0912f123cfee09b97b438e627cddf4a1a902bdc3af1e91d013d2ed0445c724"
+    "instanceId": "9060d50ef91e3336b69b231eb277ddbf649e363421bcac49696e39d16ad50e63"
   },
   "id": "spendtracker",
   "tags": []

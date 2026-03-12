@@ -655,7 +655,7 @@
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "// Add a new field called 'myNewField' to the JSON of the item\n// $input.item.json.myNewField = 1;\n\n// split the text to get the transaction id and the mcc code\nlet param = []\nparam = $input.item.json.result[0].message.text.split(' ')\n$input.item.json.transaction_id = param[2]\n$input.item.json.mcc_code = param[3]\n\n\nreturn $input.item;"
+        "jsCode": "const text = String($input.item.json?.result?.[0]?.message?.text || '').trim();\n\nlet transactionId = null;\nlet mccCode = null;\n\nconst exact = text.match(/\\/?updatemcc\\s+(\\d+)\\s+(\\d{3,4})/i);\nif (exact) {\n  transactionId = Number(exact[1]);\n  mccCode = exact[2].padStart(4, '0');\n} else {\n  const numericTokens = text.match(/\\d+/g) || [];\n  if (numericTokens.length >= 2) {\n    transactionId = Number(numericTokens[0]);\n    mccCode = numericTokens[1].slice(-4).padStart(4, '0');\n  }\n}\n\n$input.item.json.command_text = text;\n$input.item.json.transaction_id = Number.isFinite(transactionId) ? transactionId : null;\n$input.item.json.mcc_code = mccCode;\n$input.item.json.is_valid_updatemcc = Number.isFinite(transactionId) && /^\\d{4}$/.test(String(mccCode || ''));\n\nreturn $input.item;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -665,6 +665,231 @@
       ],
       "id": "628ca0c9-0984-423c-b20e-43e7e46f5502",
       "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5e349434-6e4e-4a07-bc5d-f9f4d1705289",
+              "leftValue": "={{ $json.is_valid_updatemcc }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        240,
+        352
+      ],
+      "id": "4780d905-623e-43a3-af1e-a5ea9fa3cc4d",
+      "name": "IfUpdateMCCInputValid"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH input AS (\n    SELECT\n      {{ $json.transaction_id || 0 }}::BIGINT AS tx_id,\n      CASE\n        WHEN '{{ $json.mcc_code || '' }}' = '' THEN NULL\n        ELSE LPAD('{{ $json.mcc_code || '' }}', 4, '0')\n      END::TEXT AS requested_mcc\n),\nmcc_meta AS (\n    SELECT\n      i.tx_id,\n      i.requested_mcc AS mcc_code,\n      COALESCE(\n        NULLIF(m.edited_description, ''),\n        NULLIF(m.combined_description, ''),\n        NULLIF(m.usda_description, ''),\n        NULLIF(m.irs_description, ''),\n        'Manual MCC Update'\n      ) AS mcc_description\n    FROM input i\n    LEFT JOIN mcc_reference m ON m.mcc = i.requested_mcc\n),\ntarget_tx AS (\n    SELECT\n      t.id,\n      t.merchant_id,\n      t.merchant,\n      trim(regexp_replace(replace(upper(COALESCE(t.merchant, '')), ' ', ''), '[^A-Z0-9]', '', 'g')) AS merchant_normalized\n    FROM transactions t\n    JOIN input i ON i.tx_id = t.id\n),\nupdate_existing_cache AS (\n    UPDATE merchant_mcc_cache c\n    SET\n      mcc_code = mm.mcc_code,\n      mcc_description = mm.mcc_description,\n      category = mm.mcc_description,\n      manual_override = TRUE,\n      updated_at = NOW()\n    FROM target_tx tt\n    CROSS JOIN mcc_meta mm\n    WHERE c.id = tt.merchant_id\n      AND mm.mcc_code IS NOT NULL\n    RETURNING c.id, c.mcc_code, c.mcc_description, c.category\n),\nupsert_missing_cache AS (\n    INSERT INTO merchant_mcc_cache (\n      merchant_normalized,\n      merchant_original,\n      mcc_code,\n      mcc_description,\n      category,\n      manual_override,\n      updated_at\n    )\n    SELECT\n      COALESCE(NULLIF(tt.merchant_normalized, ''), 'TX-' || tt.id::TEXT),\n      tt.merchant,\n      mm.mcc_code,\n      mm.mcc_description,\n      mm.mcc_description,\n      TRUE,\n      NOW()\n    FROM target_tx tt\n    CROSS JOIN mcc_meta mm\n    WHERE tt.merchant_id IS NULL\n      AND mm.mcc_code IS NOT NULL\n    ON CONFLICT (merchant_normalized) DO UPDATE\n    SET\n      merchant_original = EXCLUDED.merchant_original,\n      mcc_code = EXCLUDED.mcc_code,\n      mcc_description = EXCLUDED.mcc_description,\n      category = EXCLUDED.category,\n      manual_override = TRUE,\n      updated_at = NOW()\n    RETURNING id, mcc_code, mcc_description, category\n),\nresolved_cache AS (\n    SELECT id, mcc_code, mcc_description, category FROM update_existing_cache\n    UNION ALL\n    SELECT id, mcc_code, mcc_description, category FROM upsert_missing_cache\n),\nupdate_tx AS (\n    UPDATE transactions t\n    SET\n      merchant_id = rc.id,\n      mcc_code = rc.mcc_code,\n      category = COALESCE(rc.category, rc.mcc_description)\n    FROM resolved_cache rc\n    WHERE t.id = (SELECT tx_id FROM input)\n    RETURNING t.id AS transaction_id, t.merchant_id, t.mcc_code, t.category\n),\nstatus_calc AS (\n    SELECT\n      i.tx_id AS transaction_id,\n      i.requested_mcc AS requested_mcc,\n      COALESCE((SELECT ut.mcc_code FROM update_tx ut LIMIT 1), i.requested_mcc) AS mcc_code,\n      COALESCE((SELECT ut.category FROM update_tx ut LIMIT 1), (SELECT mm.mcc_description FROM mcc_meta mm LIMIT 1)) AS category,\n      CASE\n        WHEN i.requested_mcc IS NULL THEN 'invalid_mcc'\n        WHEN EXISTS (SELECT 1 FROM update_tx) THEN 'updated'\n        WHEN EXISTS (SELECT 1 FROM target_tx) THEN 'no_cache_updated'\n        ELSE 'transaction_not_found'\n      END AS status\n    FROM input i\n)\nSELECT\n  s.status,\n  s.transaction_id,\n  s.requested_mcc,\n  s.mcc_code,\n  s.category,\n  a.bank,\n  a.identifier,\n  t.merchant,\n  t.currency,\n  t.amount,\n  t.transaction_timestamp\nFROM status_calc s\nLEFT JOIN transactions t ON t.id = s.transaction_id\nLEFT JOIN accounts a ON a.id = t.account_id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        352,
+        352
+      ],
+      "id": "8f1bbf17-96f2-4204-a990-42cb3070ecf6",
+      "name": "UpdateMCCInDB",
+      "credentials": {
+        "postgres": {
+          "id": "tJk4TZtu62G05Qy6",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a4b65405-e7fd-4922-ab55-70f95ee2e0f1",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "updated",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        480,
+        352
+      ],
+      "id": "972f8188-3ab8-4d95-a841-ec976f946f9e",
+      "name": "IfUpdateSuccess"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('TelegramToken').item.json.group_id }}",
+        "text": "=Spend Card: {{ $json.bank }} {{ $json.identifier }}\nSpend Amount: {{ $json.currency }} {{ $json.amount }}\nMerchant: {{ $json.merchant }}\nMCC: {{ $json.mcc_code }}\nCategory: {{ $json.category }}\nTime: {{ DateTime.fromISO($json.transaction_timestamp).setZone('Asia/Singapore').toFormat('yyyy-MM-dd HH:mm:ss') }}\nTransaction ID: {{ $json.transaction_id }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "UpdateMCC",
+                    "additionalFields": {
+                      "switch_inline_query_current_chat": "=/updatemcc {{ $json.transaction_id }} "
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        704,
+        256
+      ],
+      "id": "e0f4b90a-c48a-47a9-94ef-4c15f92dad23",
+      "name": "Send Updated Transaction Details",
+      "webhookId": "ef90e087-9748-4a04-bc60-6977bd2c8454",
+      "credentials": {
+        "telegramApi": {
+          "id": "nbHkKJJySQ1pgycv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('TelegramToken').item.json.group_id }}",
+        "text": "={{ $json.status === 'transaction_not_found'\n  ? `⚠️ Transaction ${$json.transaction_id} not found. Usage: /updatemcc (transaction_id) (mcc_code)`\n  : ($json.status === 'invalid_mcc'\n    ? '⚠️ Invalid MCC code. Usage: /updatemcc (transaction_id) (4-digit_mcc_code)'\n    : `⚠️ MCC cache update skipped for transaction ${$json.transaction_id}.`) }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        592,
+        352
+      ],
+      "id": "e51d4ef0-3f72-453f-9ec5-3e7d367ebfa0",
+      "name": "Send a text message2",
+      "webhookId": "ef90e087-9748-4a04-bc60-6977bd2c8454",
+      "credentials": {
+        "telegramApi": {
+          "id": "nbHkKJJySQ1pgycv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('TelegramToken').item.json.group_id }}",
+        "text": "=`⚠️ Invalid command format.\nUsage: /updatemcc (transaction_id) (4-digit_mcc_code)\nExample: /updatemcc 1234 5411`",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        464
+      ],
+      "id": "dcf9f1fc-cfd8-41b8-b9ad-91a5d0d93e0a",
+      "name": "SendInvalidUpdateMCCUsage",
+      "webhookId": "ef90e087-9748-4a04-bc60-6977bd2c8454",
+      "credentials": {
+        "telegramApi": {
+          "id": "nbHkKJJySQ1pgycv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "telegram_offset",
+          "mode": "name"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "1"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "offset": "={{ $('HTTP Request').item.json.result[0].update_id+1 }}"
+          },
+          "matchingColumns": [
+            "offset"
+          ],
+          "schema": [
+            {
+              "id": "offset",
+              "displayName": "offset",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        816,
+        352
+      ],
+      "id": "ff8d0a27-52a9-43f2-bc07-3af9b4cb44b6",
+      "name": "Update row(s)4"
     }
   ],
   "pinData": {},
@@ -844,9 +1069,100 @@
           }
         ]
       ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "IfUpdateMCCInputValid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IfUpdateMCCInputValid": {
+      "main": [
+        [
+          {
+            "node": "UpdateMCCInDB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SendInvalidUpdateMCCUsage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UpdateMCCInDB": {
+      "main": [
+        [
+          {
+            "node": "IfUpdateSuccess",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IfUpdateSuccess": {
+      "main": [
+        [
+          {
+            "node": "Send Updated Transaction Details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Updated Transaction Details": {
+      "main": [
+        [
+          {
+            "node": "Update row(s)4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message2": {
+      "main": [
+        [
+          {
+            "node": "Update row(s)4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SendInvalidUpdateMCCUsage": {
+      "main": [
+        [
+          {
+            "node": "Update row(s)4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",

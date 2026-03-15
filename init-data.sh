@@ -48,6 +48,8 @@ if [ -n "${POSTGRES_NON_ROOT_USER:-}" ] && [ -n "${POSTGRES_NON_ROOT_PASSWORD:-}
       created_at TIMESTAMPTZ DEFAULT NOW(),
       UNIQUE(bank, identifier)             -- prevent duplicates
     );
+    -- Ensure existing installations also have the card_alias column
+    ALTER TABLE accounts ADD COLUMN IF NOT EXISTS card_alias TEXT;
     CREATE TABLE transactions (
         id BIGSERIAL PRIMARY KEY,
         account_id BIGINT NOT NULL REFERENCES accounts(id),

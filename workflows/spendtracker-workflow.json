@@ -12,8 +12,8 @@
       "type": "n8n-nodes-base.emailReadImap",
       "typeVersion": 2.1,
       "position": [
-        -608,
-        416
+        -736,
+        480
       ],
       "id": "b1c9162b-317e-44c8-9c95-96f56237c496",
       "name": "Email Trigger (IMAP)",
@@ -74,8 +74,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        848,
-        240
+        1008,
+        224
       ],
       "id": "4c54a7ab-a846-4869-8895-b649a41c2345",
       "name": "CreateAccountIfNotExists",
@@ -97,7 +97,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        864,
+        976,
         496
       ],
       "id": "2e4ffaec-300e-4ef2-9a7b-0791c7171f8f",
@@ -149,8 +149,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1472,
-        464
+        1568,
+        480
       ],
       "id": "1cd4c73a-b2bb-4f60-a467-25520dd76fbd",
       "name": "IfCached"
@@ -163,8 +163,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1824,
-        704
+        1920,
+        720
       ],
       "id": "ff5cf15a-bcac-4e60-ad3f-05ab2f8f5e14",
       "name": "GetMCCFromAPI",
@@ -226,8 +226,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1632,
-        336
+        1728,
+        352
       ],
       "id": "4b8f8f5d-5cf9-4bae-96eb-b44598157389",
       "name": "UseExactCache"
@@ -270,8 +270,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1632,
-        496
+        1728,
+        512
       ],
       "id": "05182adc-95bc-4a31-ae6f-3d5984179f35",
       "name": "IfSimilar"
@@ -285,8 +285,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1856,
-        496
+        1952,
+        512
       ],
       "id": "5ab8c5d5-0716-4989-856b-a113b0e67d7c",
       "name": "CreateCacheFromSimilar",
@@ -491,13 +491,13 @@
     },
     {
       "parameters": {
-        "numberInputs": 5
+        "numberInputs": 6
       },
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        480,
-        448
+        592,
+        464
       ],
       "id": "c818e743-f0f0-4db0-8ccb-04268fc6a3eb",
       "name": "Merge"
@@ -565,19 +565,6 @@
     },
     {
       "parameters": {
-        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nlet result = []\nfor (const item of $input.all()) {\n  // 1️⃣ Decode HTML entity\n  const text = item.json.cleaned.replace(/&amp;/g, \"&\");\n  \n  // 2️⃣ Extract values\n  const timeMatch = text.match(/Date\\s*&\\s*Time:\\s*([^\\n<]+)/i);\n  const amountMatch = text.match(/Amount:\\s*([A-Z]{3}\\d+\\.\\d+)/i);\n  const fromMatch = text.match(/From:\\s*([^\\n<]+)/i);\n  const toMatch = text.match(/To:\\s*([^\\n<]+)/i);\n\n  const cardMatch = fromMatch[1].trim().match(/card ending\\s(\\d{4})/i);\n  const cardEnding = cardMatch ? cardMatch[1] : null;\n  \n  // 3️⃣ Build result\n  result.push({\n    time: timeMatch ? timeMatch[1].trim() : null,\n    // currency: amountMatch ? amountMatch[1] : null,\n    amount: amountMatch ? amountMatch[1] : null,\n    identifier: cardEnding,\n    merchant: toMatch ? toMatch[1].trim() : null\n  });\n\n}\nreturn result\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        32,
-        864
-      ],
-      "id": "0bc1bb5b-462e-44a6-882e-d1930d7d9477",
-      "name": "Code in JavaScript"
-    },
-    {
-      "parameters": {
         "options": {
           "reset": false
         }
@@ -585,7 +572,7 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        656,
+        768,
         448
       ],
       "id": "d5a9d3f0-ed46-45c1-80d1-8dca603e1718",
@@ -624,8 +611,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1296,
-        464
+        1392,
+        480
       ],
       "id": "0d20d54a-2ab5-48d0-83d3-2f7accf05089",
       "name": "GetTelegram",
@@ -647,7 +634,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1072,
+        1184,
         496
       ],
       "id": "e035b13f-0df8-4323-b09a-2b6543efd098",
@@ -712,7 +699,7 @@
     },
     {
       "parameters": {
-        "jsCode": "let result = []\n// Early guard: ensure this looks like a Citibank notification and has content\n\nfor (const item of $input.all()) {\n  const html = item.json.transaction_array;\n\n  extractHSBC(html);\n}\n\n\nfunction extractHSBC(text) {\n  \n  const cardEnding = text[0].split(\"-\")[3]\n  const date = text[1].replace('/', ' ')\n  const transactionISO = new Date(`${date} ${text[2]} GMT+08`).toISOString()\n  const [, currency, amount] = text[3].match(/^([A-Z]{3})(\\d+(?:\\.\\d+)?)$/);\n\n  const merchant = text[4]\n    \n  // const dateMatch = text.match(/Transaction date:\\s*(\\d{2}\\/\\d{2}\\/\\d{2})/i);\n  // const timeMatch = text.match(/Transaction\\s*time:\\s*([0-9:]+)/i);\n  // const merchantMatch = text.match(/Transaction\\s+details\\s*:\\s*(.*?)\\s+Singapore\\s+SGP/i);\n  // const amountMatch = text.match(/Transaction amount:\\s*([A-Z]{3})([\\d,]+\\.\\d{2})/i);\n  // const cardMatch = text.match(/Account number:\\s*(?:X{4}-){3}(\\d{4})/i);\n  \n  // // If required fields are missing, do not emit a transaction\n  // if (!dateMatch || !amountMatch) {\n  //   return [];\n  // }\n  \n  // const merchant = merchantMatch?.[1]?.trim();\n  // const currency = amountMatch ? amountMatch[1] : null;\n  // const amount = amountMatch ? parseFloat(amountMatch[2].replace(/,/g, \"\")) : null;\n  // const cardEnding = cardMatch ? cardMatch[1] : null;\n  \n  // let transactionISO = null;\n  // if (dateMatch) {\n  //   const parts = dateMatch[1].split('/');\n  //   const year = \"20\" + parts[2];\n  //   const month = parts[1];\n  //   const day = parts[0];\n  \n  //   const time = timeMatch ? timeMatch[1] : \"12:00:00\";\n  \n  //   transactionISO = new Date(`${year}-${month}-${day}T${time}+08:00`).toISOString();\n  // }\n  result.push({\n    bank: \"HSBC\",\n    merchant,\n    currency,\n    amount,\n    time: transactionISO,\n    identifier: cardEnding,\n    // normalize_merchant: normalizeMerchant(merchant || \"\")\n  })\n}\n\n\nfunction normalizeMerchant(name) {\n  return name.toUpperCase().replace(/[^A-Z0-9]/g, \"\").trim();\n}\n\nreturn result;"
+        "jsCode": "let result = []\n// Early guard: ensure this looks like a Citibank notification and has content\n\nfor (const item of $input.all()) {\n  const html = item.json.transaction_array;\n\n  extractHSBC(html);\n}\n\n\nfunction extractHSBC(text) {\n  \n  const cardEnding = text[0].split(\"-\")[3]\n  const date = text[1].replace('/', ' ')\n  const transactionISO = new Date(`${date} ${text[2]} GMT+08`).toISOString()\n  const [, currency, amount] = text[3].match(/^([A-Z]{3})(\\d+(?:\\.\\d+)?)$/);\n\n  const merchant = text[4]\n  \n  result.push({\n    bank: \"HSBC\",\n    merchant,\n    currency,\n    amount,\n    time: transactionISO,\n    identifier: cardEnding,\n    normalize_merchant: normalizeMerchant(merchant || \"\")\n  })\n}\n\n\nfunction normalizeMerchant(name) {\n  return name.toUpperCase().replace(/[^A-Z0-9]/g, \"\").trim();\n}\n\nreturn result;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -722,30 +709,6 @@
       ],
       "id": "cafcdcb5-7807-4bfd-b03e-2b12ec2d184e",
       "name": "HSBCParser"
-    },
-    {
-      "parameters": {
-        "operation": "extractHtmlContent",
-        "dataPropertyName": "textHtml",
-        "extractionValues": {
-          "values": [
-            {
-              "key": "transaction_array",
-              "cssSelector": "table table tbody tr td:nth-child(2)",
-              "returnArray": true
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.html",
-      "typeVersion": 1.2,
-      "position": [
-        -288,
-        -64
-      ],
-      "id": "67576d8f-ea32-4730-ba9f-efb8152980fa",
-      "name": "dbs_card_html_parser1"
     },
     {
       "parameters": {
@@ -779,6 +742,229 @@
       ],
       "id": "9625cff0-db23-4dcf-9d90-6849c75fbf1f",
       "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9ec16613-6a5b-4a5c-9008-389a5957aeb5",
+              "leftValue": "={{ $json.textHtml.toLowerCase() }}",
+              "rightValue": "ocbc",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "9befbad2-10fd-4def-a27f-605e02d04fdf",
+              "leftValue": "={{ $json.textHtml.toLowerCase() }}",
+              "rightValue": "uen",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -512,
+        976
+      ],
+      "id": "72653a5c-b9ff-4fed-96b4-d7092fafc68f",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9ec16613-6a5b-4a5c-9008-389a5957aeb5",
+              "leftValue": "={{ $json.textHtml.toLowerCase() }}",
+              "rightValue": "ocbc",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "9befbad2-10fd-4def-a27f-605e02d04fdf",
+              "leftValue": "={{ $json.textHtml.toLowerCase() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -320,
+        1456
+      ],
+      "id": "ac443fe7-b866-4793-9072-e014ece2bd49",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "dataPropertyName": "textHtml",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "transaction_array",
+              "cssSelector": "table table tbody tr td:nth-child(2)",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -288,
+        -64
+      ],
+      "id": "67576d8f-ea32-4730-ba9f-efb8152980fa",
+      "name": "HSBCHtmlParser"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "dataPropertyName": "textHtml",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "merchant",
+              "cssSelector": "p:nth-of-type(2)"
+            },
+            {
+              "key": "amount",
+              "cssSelector": "tr:nth-of-type(3)"
+            },
+            {
+              "key": "time",
+              "cssSelector": "tr:nth-of-type(2)"
+            },
+            {
+              "key": "identifier",
+              "cssSelector": "tr:nth-of-type(4)"
+            },
+            {
+              "key": "date",
+              "cssSelector": "tr:nth-of-type(1)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -64,
+        1328
+      ],
+      "id": "9deee997-8ea3-4251-a6e5-f984c3414177",
+      "name": "OCBCPayNowUENParser"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "dataPropertyName": "textHtml",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "merchant",
+              "cssSelector": "div:nth-of-type(2)"
+            },
+            {
+              "key": "amount",
+              "cssSelector": "tr:nth-of-type(3)"
+            },
+            {
+              "key": "time",
+              "cssSelector": "tr:nth-of-type(2)"
+            },
+            {
+              "key": "identifier",
+              "cssSelector": "tr:nth-of-type(4)"
+            },
+            {
+              "key": "date",
+              "cssSelector": "tr:nth-of-type(1)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -64,
+        1504
+      ],
+      "id": "6f3667b2-7ed7-4296-96d3-2da7e4feb774",
+      "name": "OCBCPayNowParser"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nlet result = []\nfor (const item of $input.all()) {\n  // 1️⃣ Decode HTML entity\n  const text = item.json.cleaned.replace(/&amp;/g, \"&\");\n  \n  // 2️⃣ Extract values\n  const timeMatch = text.match(/Date\\s*&\\s*Time:\\s*([^\\n<]+)/i);\n  const amountMatch = text.match(/Amount:\\s*([A-Z]{3}\\d+\\.\\d+)/i);\n  const fromMatch = text.match(/From:\\s*([^\\n<]+)/i);\n  const toMatch = text.match(/To:\\s*([^\\n<]+)/i);\n\n  const cardMatch = fromMatch[1].trim().match(/card ending\\s(\\d{4})/i);\n  const cardEnding = cardMatch ? cardMatch[1] : null;\n  \n  // 3️⃣ Build result\n  result.push({\n    time: timeMatch ? timeMatch[1].trim() : null,\n    // currency: amountMatch ? amountMatch[1] : null,\n    amount: amountMatch ? amountMatch[1] : null,\n    identifier: cardEnding,\n    merchant: toMatch ? toMatch[1].trim() : null\n  });\n\n}\nreturn result\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        864
+      ],
+      "id": "0bc1bb5b-462e-44a6-882e-d1930d7d9477",
+      "name": "DbsCardParser"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        128,
+        1360
+      ],
+      "id": "84376083-7270-40aa-9fa0-73e98559e0ae",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "jsCode": "let result = []\n\nfor (const item of $input.all()) {\n\n  let merchant_match = item.json.merchant.match(/The following PayNow transfer has been made to ([^\\n<]+)\\nusing their Unique Entity Number \\(UEN\\) ([^\\n<]+)/i)\n\n  if (!merchant_match) {\n    merchant_match = item.json.merchant.match(/The following PayNow transfer has been made to ([^\\n<]+) using his\\/her Mobile\\n\\(([^\\n<]+)\\)/i)\n  }\n\n  let amount_match = item.json.amount.match(/Amount:\\s*([^\\s]+)\\s*([^\\s]+)/i)\n\n  // Extract time\n  let time_match = item.json.time.match(/Time:\\s*([^\\n]+) PM SGT/i)\n\n  // Extract date\n  let date_match = item.json.date.match(/Date:\\s*([^\\n]+)/i)\n\n  // Combine date + time\n  let transactionISO = new Date().toISOString()\n  if (date_match && time_match) {\n    const datetimeStr = `${date_match[1]} ${time_match[1]} GMT+08`\n    const parsed = new Date(datetimeStr)\n    transactionISO = parsed.toISOString()\n  }\n\n  // Extract last 4 digits from account\n  let identifier_match = item.json.identifier.match(/From your account: ([^\\n]+)/i)\n  let identifier = identifier_match ? identifier_match[1] : \"\"\n  let merchant = merchant_match ? merchant_match[1].trim() + \" \" + merchant_match[2].trim() : \"\"\n\n  result.push({\n    bank: \"OCBC\",\n    merchant,\n    currency: amount_match ? amount_match[1] : \"SGD\",\n    amount: amount_match ? amount_match[2] : \"0.00\",\n    time: transactionISO,\n    identifier: identifier,\n    normalize_merchant: normalizeMerchant(merchant  || \"\")\n  })\n}\nfunction normalizeMerchant(name) {\n  return name.toUpperCase().replace(/[^A-Z0-9]/g, \"\").trim();\n}\nreturn result"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        1312
+      ],
+      "id": "0e02e904-2519-4412-aeba-79ca787c75d4",
+      "name": "OCBCParser"
     }
   ],
   "pinData": {},
@@ -808,6 +994,11 @@
           },
           {
             "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If1",
             "type": "main",
             "index": 0
           }
@@ -1011,17 +1202,6 @@
         ]
       ]
     },
-    "Code in JavaScript": {
-      "main": [
-        [
-          {
-            "node": "Merge1",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
     "Loop Over Items": {
       "main": [
         [],
@@ -1092,7 +1272,7 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript",
+            "node": "DbsCardParser",
             "type": "main",
             "index": 0
           }
@@ -1121,22 +1301,11 @@
         ]
       ]
     },
-    "dbs_card_html_parser1": {
-      "main": [
-        [
-          {
-            "node": "HSBCParser",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "If": {
       "main": [
         [
           {
-            "node": "dbs_card_html_parser1",
+            "node": "HSBCHtmlParser",
             "type": "main",
             "index": 0
           }
@@ -1153,6 +1322,101 @@
           }
         ]
       ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "OCBCPayNowUENParser",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "OCBCPayNowParser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HSBCHtmlParser": {
+      "main": [
+        [
+          {
+            "node": "HSBCParser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OCBCPayNowUENParser": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OCBCPayNowParser": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "DbsCardParser": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "OCBCParser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OCBCParser": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -1161,7 +1425,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "cbd3c7df-bde4-4c22-9427-fa8ccb10ede2",
+  "versionId": "f19c526b-f2ed-468a-be9e-bd6bf0e77592",
   "meta": {
     "instanceId": "f91e94c7277e6c12bb29a8ff2e630a146cb07f7f80eead8880254d1f65556c31"
   },

@@ -29,7 +29,7 @@ Required env vars:
 1. Clone and enter repo:
 
 ```sh
-git clone https://github.com/ooijingkai10/n8n-workflow.git
+git clone https://github.com/spend-tracker-app/n8n-workflow.git
 cd n8n-workflow
 ```
 

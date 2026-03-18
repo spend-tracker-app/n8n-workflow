@@ -803,15 +803,6 @@
                 "type": "string",
                 "operation": "contains"
               }
-            },
-            {
-              "id": "9befbad2-10fd-4def-a27f-605e02d04fdf",
-              "leftValue": "={{ $json.textHtml.toLowerCase() }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "contains"
-              }
             }
           ],
           "combinator": "and"
@@ -955,7 +946,7 @@
     },
     {
       "parameters": {
-        "jsCode": "let result = []\n\nfor (const item of $input.all()) {\n\n  let merchant_match = item.json.merchant.match(/The following PayNow transfer has been made to ([^\\n<]+)\\nusing their Unique Entity Number \\(UEN\\) ([^\\n<]+)/i)\n\n  if (!merchant_match) {\n    merchant_match = item.json.merchant.match(/The following PayNow transfer has been made to ([^\\n<]+) using his\\/her Mobile\\n\\(([^\\n<]+)\\)/i)\n  }\n\n  let amount_match = item.json.amount.match(/Amount:\\s*([^\\s]+)\\s*([^\\s]+)/i)\n\n  // Extract time\n  let time_match = item.json.time.match(/Time:\\s*([^\\n]+) PM SGT/i)\n\n  // Extract date\n  let date_match = item.json.date.match(/Date:\\s*([^\\n]+)/i)\n\n  // Combine date + time\n  let transactionISO = new Date().toISOString()\n  if (date_match && time_match) {\n    const datetimeStr = `${date_match[1]} ${time_match[1]} GMT+08`\n    const parsed = new Date(datetimeStr)\n    transactionISO = parsed.toISOString()\n  }\n\n  // Extract last 4 digits from account\n  let identifier_match = item.json.identifier.match(/From your account: ([^\\n]+)/i)\n  let identifier = identifier_match ? identifier_match[1] : \"\"\n  let merchant = merchant_match ? merchant_match[1].trim() + \" \" + merchant_match[2].trim() : \"\"\n\n  result.push({\n    bank: \"OCBC\",\n    merchant,\n    currency: amount_match ? amount_match[1] : \"SGD\",\n    amount: amount_match ? amount_match[2] : \"0.00\",\n    time: transactionISO,\n    identifier: identifier,\n    normalize_merchant: normalizeMerchant(merchant  || \"\")\n  })\n}\nfunction normalizeMerchant(name) {\n  return name.toUpperCase().replace(/[^A-Z0-9]/g, \"\").trim();\n}\nreturn result"
+        "jsCode": "let result = []\n\nfor (const item of $input.all()) {\n\n  let merchant_match = item.json.merchant.match(/made to\\s+([\\s\\S]*?)\\s+using[\\s\\S]*?\\(UEN\\)\\s*([A-Z0-9]+)/i)\n\n  if (!merchant_match) {\n    merchant_match = item.json.merchant.match(/made to (.*?) using .*?Mobile\\s*\\(\\+\\*+(\\d{4})\\)/i)\n  }\n\n  let amount_match = item.json.amount.match(/Amount:\\s*([^\\s]+)\\s*([^\\s]+)/i)\n\n  // Extract time\n  let time_match = item.json.time.match(/Time:\\s*([^\\n]+) PM SGT/i)\n\n  // Extract date\n  let date_match = item.json.date.match(/Date:\\s*([^\\n]+)/i)\n\n  // Combine date + time\n  let transactionISO = new Date().toISOString()\n  if (date_match && time_match) {\n    const datetimeStr = `${date_match[1]} ${time_match[1]} GMT+08`\n    const parsed = new Date(datetimeStr)\n    transactionISO = parsed.toISOString()\n  }\n\n  // Extract last 4 digits from account\n  let identifier_match = item.json.identifier.match(/From your account: ([^\\n]+)/i)\n  let identifier = identifier_match ? identifier_match[1] : \"\"\n  let merchant = merchant_match ? merchant_match[1].trim() + \" \" + merchant_match[2].trim() : \"\"\n\n  result.push({\n    bank: \"OCBC\",\n    merchant,\n    currency: amount_match ? amount_match[1] : \"SGD\",\n    amount: amount_match ? amount_match[2] : \"0.00\",\n    time: transactionISO,\n    identifier: identifier,\n    normalize_merchant: normalizeMerchant(merchant  || \"\")\n  })\n}\nfunction normalizeMerchant(name) {\n  return name.toUpperCase().replace(/[^A-Z0-9]/g, \"\").trim();\n}\nreturn result"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1425,7 +1416,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "f19c526b-f2ed-468a-be9e-bd6bf0e77592",
+  "versionId": "2c3ea83e-092d-4a63-b269-4b016d2c9ed2",
   "meta": {
     "instanceId": "f91e94c7277e6c12bb29a8ff2e630a146cb07f7f80eead8880254d1f65556c31"
   },
